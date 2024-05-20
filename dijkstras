@@ -1,0 +1,208 @@
+#include <stdio.h>
+#include <stdlib.h>
+
+#define INFINITY 999
+#define SIZE 10
+
+int cam[SIZE][SIZE], n;
+
+void get_input() {
+    int i, j;
+    printf("Enter the cost adjacency matrix in the matrix form (for no edge enter 0):\n");
+    for (i = 0; i < n; i++) {
+        for (j = 0; j < n; j++) {
+            scanf("%d", &cam[i][j]);
+            if (cam[i][j] == 0 && i != j) {
+                cam[i][j] = INFINITY; 
+            }
+        }
+    }
+}
+
+void display_path(int dist[], int path[], int src, int dest) {
+    int i = dest;
+    printf("\nPath: ");
+    while (i != src) {
+        printf("%d <--- ", i);
+        i = path[i];
+    }
+    printf("%d, Distance = %d", i, dist[dest]);
+}
+
+void dijkstra(int dist[], int path[], int src, int dest) {
+    int s[SIZE], i, j, u, v, min;
+    for (i = 0; i < n; i++) {
+        dist[i] = cam[src][i];
+        s[i] = 0;
+        path[i] = src;
+    }
+    s[src] = 1;
+    for (i = 1; i < n; i++) {
+        min = INFINITY;
+        u = -1;
+        for (j = 0; j < n; j++) {
+            if (dist[j] < min && !s[j]) {
+                min = dist[j];
+                u = j;
+            }
+        }
+        if (u == -1) {
+            return;
+        }
+        s[u] = 1;
+        if (u == dest) {
+            return;
+        }
+        for (v = 0; v < n; v++) {
+            if (dist[u] + cam[u][v] < dist[v] && !s[v]) {
+                dist[v] = dist[u] + cam[u][v];
+                path[v] = u;
+            }
+        }
+    }
+}
+
+int manhattan_distance(int x1, int y1, int x2, int y2) {
+    return abs(x1 - x2) + abs(y1 - y2);
+}
+
+typedef struct {
+    int node;
+    int g; 
+    int h; 
+    int f; 
+    int parent;
+} AStarNode;
+
+void astar(int graph[SIZE][SIZE], int n, int src, int dest, int heuristic[SIZE], int x[], int y[]) {
+    AStarNode open_list[SIZE];
+    int closed_list[SIZE] = {0}; //visited nodes
+    int open_list_count = 0; // Count in the open list
+    int path[SIZE] = {-1}; //parent of each node
+
+    AStarNode start;
+    start.node = src;
+    start.g = 0;
+    start.h = heuristic[src];
+    start.f = start.g + start.h;
+    start.parent = -1;
+
+    open_list[open_list_count++] = start;
+
+    while (open_list_count > 0) {
+        // Find node with the lowest f in open list
+        int current = 0;
+        int i;
+        for (i = 1; i < open_list_count; i++) {
+            if (open_list[i].f < open_list[current].f) {
+                current = i;
+            }
+        }
+
+        AStarNode current_node = open_list[current];
+
+        // If reached the destination, build the path and return
+        if (current_node.node == dest) {
+            printf("\nPath found by A*: ");
+            int node = current_node.node;
+            while (node != src) {
+                printf("%d <-- ", node);
+                node = path[node];
+            }
+            printf("%d", src);
+            return;
+        }
+
+        // Remove current node from open list
+        for (i = current; i < open_list_count - 1; i++) {
+            open_list[i] = open_list[i + 1];
+        }
+        open_list_count--;
+
+        // Add to closed list
+        closed_list[current_node.node] = 1;
+
+        // Explore adjacent nodes
+        for (i = 0; i < n; i++) {
+            if (graph[current_node.node][i] != INFINITY && !closed_list[i]) {
+                int tentative_g = current_node.g + graph[current_node.node][i];
+
+                // Check if node is already in open list
+                int is_in_open_list = 0;
+                int open_list_index = -1;
+                int j;
+                for ( j = 0; j < open_list_count; j++) {
+                    if (open_list[j].node == i) {
+                        is_in_open_list = 1;
+                        open_list_index = j;
+                        break;
+                    }
+                }
+
+                if (!is_in_open_list) {
+                    AStarNode new_node;
+                    new_node.node = i;
+                    new_node.g = tentative_g;
+                    new_node.h = heuristic[i];
+                    new_node.f = new_node.g + new_node.h;
+                    new_node.parent = current_node.node;
+
+                    open_list[open_list_count++] = new_node;
+                    path[i] = current_node.node;
+                } else {
+                    if (tentative_g < open_list[open_list_index].g) {
+                        open_list[open_list_index].g = tentative_g;
+                        open_list[open_list_index].f = open_list[open_list_index].g + open_list[open_list_index].h;
+                        path[i] = current_node.node;
+                    }
+                }
+            }
+        }
+    }
+    printf("No path found by A*.");
+}
+
+int main() {
+    int dist[SIZE], path[SIZE], src;
+    int x[SIZE], y[SIZE]; // Coordinates for heuristic calculation
+    int heuristic[SIZE];
+	int i,dest;
+    printf("\nEnter the number of vertices in a graph: ");
+    scanf("%d", &n);
+
+    get_input();
+
+   
+    printf("\nEnter the source vertex: ");
+    scanf("%d", &src);
+
+    // Get coordinates for heuristic calculation (for A*)
+    printf("Enter coordinates (x, y) for each vertex:\n");
+    for (i = 0; i < n; i++) {
+        printf("Vertex %d: ", i);
+        scanf("%d %d", &x[i], &y[i]);
+        heuristic[i] = manhattan_distance(x[i], y[i], x[dest], y[dest]);
+    }
+
+    
+    printf("\nDijkstra's Shortest Paths from vertex %d:\n", src);
+    for (i = 0; i < n; i++) {
+        if (src == i) {
+            printf("\n%d <--- %d, Distance = 0", src, i);
+        } else {
+            dijkstra(dist, path, src, i);
+            if (dist[i] == INFINITY) {
+                printf("\n%d is not reachable from %d", src, i);
+            } else {
+                display_path(dist, path, src, i);
+            }
+        }
+    }
+
+    
+    printf("\n\nA* Pathfinding from vertex %d to vertex %d:\n", src, n - 1);
+    astar(cam, n, src, n - 1, heuristic, x, y);
+
+    printf("\n");
+
+    return 0;
