@@ -1,0 +1,89 @@
+#include <stdio.h>
+#include <stdlib.h>
+#include <time.h>
+
+// Bubble Sort
+void bubbleSort(int arr[], int n) {
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - i - 1; j++) {
+            if (arr[j] > arr[j + 1]) {
+                int temp = arr[j];
+                arr[j] = arr[j + 1];
+                arr[j + 1] = temp;
+            }
+        }
+    }
+}
+
+// Selection Sort
+void selectionSort(int arr[], int n) {
+    for (int i = 0; i < n - 1; i++) {
+        int min_index = i;
+        for (int j = i + 1; j < n; j++) {
+            if (arr[j] < arr[min_index]) {
+                min_index = j;
+            }
+        }
+        int temp = arr[i];
+        arr[i] = arr[min_index];
+        arr[min_index] = temp;
+    }
+}
+
+// Insertion Sort
+void insertionSort(int arr[], int n) {
+    for (int i = 1; i < n; i++) {
+        int key = arr[i];
+        int j = i - 1;
+        while (j >= 0 && arr[j] > key) {
+            arr[j + 1] = arr[j];
+            j--;
+        }
+        arr[j + 1] = key;
+    }
+}
+
+// Utility function to print an array
+void printArray(int arr[], int n) {
+    for (int i = 0; i < n; i++) {
+        printf("%d ", arr[i]);
+    }
+    printf("\n");
+}
+
+int main() {
+    int arr[] = {64, 34, 25, 12, 22, 11, 90};
+    int n = sizeof(arr) / sizeof(arr[0]);
+
+    printf("Original array: ");
+    printArray(arr, n);
+
+    // Bubble Sort
+    int bubble_arr[n];
+    for (int i = 0; i < n; i++) {
+        bubble_arr[i] = arr[i];
+    }
+    bubbleSort(bubble_arr, n);
+    printf("Bubble Sorted array: ");
+    printArray(bubble_arr, n);
+
+    // Selection Sort
+    int selection_arr[n];
+    for (int i = 0; i < n; i++) {
+        selection_arr[i] = arr[i];
+    }
+    selectionSort(selection_arr, n);
+    printf("Selection Sorted array: ");
+    printArray(selection_arr, n);
+
+    // Insertion Sort
+    int insertion_arr[n];
+    for (int i = 0; i < n; i++) {
+        insertion_arr[i] = arr[i];
+    }
+    insertionSort(insertion_arr, n);
+    printf("Insertion Sorted array: ");
+    printArray(insertion_arr, n);
+
+    return 0;
+}
